@@ -51,135 +51,290 @@ describe('Comment entity', () => {
     expect(comment.isDeleted).toEqual(payload.isDeleted);
   });
 
-  it('should show actual content when isDeleted is false and format replies correctly', () => {
-    // Arrange
-    const payload = {
-      id: 'comment-123',
-      content: 'comment thread abc',
-      threadId: 'thread-123',
-      owner: 'user-123',
-      date: '2025-05-01T03:59:56.666Z',
-      username: 'johndoe',
-      isDeleted: false,
-    };
+  describe('toDetail method', () => {
+    it('should show actual content when isDeleted is false and format replies correctly', () => {
+      // Arrange
+      const payload = {
+        id: 'comment-123',
+        content: 'comment thread abc',
+        threadId: 'thread-123',
+        owner: 'user-123',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        isDeleted: false,
+      };
 
-    const comment = new Comment(payload);
+      const comment = new Comment(payload);
 
-    const replies = [
-      {
-        toDetail: () => ({
-          id: 'reply-123',
-          content: 'first reply',
-          date: '2025-05-01T04:00:00.000Z',
-          username: 'user1',
-        }),
-      },
-      {
-        toDetail: () => ({
-          id: 'reply-456',
-          content: 'second reply',
-          date: '2025-05-01T04:30:00.000Z',
-          username: 'user2',
-        }),
-      },
-    ];
-
-    // Action
-    const detailedComment = comment.toDetail(replies);
-
-    // Assert
-    expect(detailedComment).toEqual({
-      id: 'comment-123',
-      content: 'comment thread abc',
-      date: '2025-05-01T03:59:56.666Z',
-      username: 'johndoe',
-      replies: [
+      const replies = [
         {
-          id: 'reply-123',
-          content: 'first reply',
-          date: '2025-05-01T04:00:00.000Z',
-          username: 'user1',
+          toDetail: () => ({
+            id: 'reply-123',
+            content: 'first reply',
+            date: '2025-05-01T04:00:00.000Z',
+            username: 'user1',
+          }),
         },
         {
-          id: 'reply-456',
-          content: 'second reply',
-          date: '2025-05-01T04:30:00.000Z',
-          username: 'user2',
+          toDetail: () => ({
+            id: 'reply-456',
+            content: 'second reply',
+            date: '2025-05-01T04:30:00.000Z',
+            username: 'user2',
+          }),
         },
-      ],
+      ];
+
+      // Action
+      const detailedComment = comment.toDetail(replies);
+
+      // Assert
+      expect(detailedComment).toEqual({
+        id: 'comment-123',
+        content: 'comment thread abc',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        likeCount: 0,
+        replies: [
+          {
+            id: 'reply-123',
+            content: 'first reply',
+            date: '2025-05-01T04:00:00.000Z',
+            username: 'user1',
+          },
+          {
+            id: 'reply-456',
+            content: 'second reply',
+            date: '2025-05-01T04:30:00.000Z',
+            username: 'user2',
+          },
+        ],
+      });
     });
-  });
 
-  it('should show "**komentar telah dihapus**" when isDeleted is true', () => {
-    // Arrange
-    const payload = {
-      id: 'comment-123',
-      content: 'comment thread abc',
-      threadId: 'thread-123',
-      owner: 'user-123',
-      date: '2025-05-01T03:59:56.666Z',
-      username: 'johndoe',
-      isDeleted: true,
-    };
+    it('should show actual content with specified likeCount when provided', () => {
+      // Arrange
+      const payload = {
+        id: 'comment-123',
+        content: 'comment thread abc',
+        threadId: 'thread-123',
+        owner: 'user-123',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        isDeleted: false,
+      };
 
-    const comment = new Comment(payload);
+      const comment = new Comment(payload);
+      const replies = [];
+      const likeCount = 5;
 
-    const replies = [
-      {
-        toDetail: () => ({
-          id: 'reply-123',
-          content: 'a reply',
-          date: '2025-05-01T04:00:00.000Z',
-          username: 'user1',
-        }),
-      },
-    ];
+      // Action
+      const detailedComment = comment.toDetail(replies, likeCount);
 
-    // Action
-    const detailedComment = comment.toDetail(replies);
-
-    // Assert
-    expect(detailedComment).toEqual({
-      id: 'comment-123',
-      content: '**komentar telah dihapus**',
-      date: '2025-05-01T03:59:56.666Z',
-      username: 'johndoe',
-      replies: [
-        {
-          id: 'reply-123',
-          content: 'a reply',
-          date: '2025-05-01T04:00:00.000Z',
-          username: 'user1',
-        },
-      ],
+      // Assert
+      expect(detailedComment).toEqual({
+        id: 'comment-123',
+        content: 'comment thread abc',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        likeCount: 5,
+        replies: [],
+      });
     });
-  });
 
-  it('should handle empty replies array correctly', () => {
-    // Arrange
-    const payload = {
-      id: 'comment-123',
-      content: 'comment thread abc',
-      threadId: 'thread-123',
-      owner: 'user-123',
-      date: '2025-05-01T03:59:56.666Z',
-      username: 'johndoe',
-      isDeleted: false,
-    };
+    it('should show "**komentar telah dihapus**" when isDeleted is true', () => {
+      // Arrange
+      const payload = {
+        id: 'comment-123',
+        content: 'comment thread abc',
+        threadId: 'thread-123',
+        owner: 'user-123',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        isDeleted: true,
+      };
 
-    const comment = new Comment(payload);
-    const replies = [];
+      const comment = new Comment(payload);
 
-    // Action
-    const detailedComment = comment.toDetail(replies);
+      const replies = [
+        {
+          toDetail: () => ({
+            id: 'reply-123',
+            content: 'a reply',
+            date: '2025-05-01T04:00:00.000Z',
+            username: 'user1',
+          }),
+        },
+      ];
 
-    // Assert
-    expect(detailedComment).toEqual({
-      id: 'comment-123',
-      content: 'comment thread abc',
-      date: '2025-05-01T03:59:56.666Z',
-      username: 'johndoe',
-      replies: [],
+      // Action
+      const detailedComment = comment.toDetail(replies);
+
+      // Assert
+      expect(detailedComment).toEqual({
+        id: 'comment-123',
+        content: '**komentar telah dihapus**',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        likeCount: 0,
+        replies: [
+          {
+            id: 'reply-123',
+            content: 'a reply',
+            date: '2025-05-01T04:00:00.000Z',
+            username: 'user1',
+          },
+        ],
+      });
+    });
+
+    it('should show "**komentar telah dihapus**" when isDeleted is true with specified likeCount', () => {
+      // Arrange
+      const payload = {
+        id: 'comment-123',
+        content: 'comment thread abc',
+        threadId: 'thread-123',
+        owner: 'user-123',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        isDeleted: true,
+      };
+
+      const comment = new Comment(payload);
+      const replies = [];
+      const likeCount = 3;
+
+      // Action
+      const detailedComment = comment.toDetail(replies, likeCount);
+
+      // Assert
+      expect(detailedComment).toEqual({
+        id: 'comment-123',
+        content: '**komentar telah dihapus**',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        likeCount: 3,
+        replies: [],
+      });
+    });
+
+    it('should handle empty replies array correctly', () => {
+      // Arrange
+      const payload = {
+        id: 'comment-123',
+        content: 'comment thread abc',
+        threadId: 'thread-123',
+        owner: 'user-123',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        isDeleted: false,
+      };
+
+      const comment = new Comment(payload);
+      const replies = [];
+
+      // Action
+      const detailedComment = comment.toDetail(replies);
+
+      // Assert
+      expect(detailedComment).toEqual({
+        id: 'comment-123',
+        content: 'comment thread abc',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        likeCount: 0,
+        replies: [],
+      });
+    });
+
+    it('should handle empty replies array with specified likeCount correctly', () => {
+      // Arrange
+      const payload = {
+        id: 'comment-123',
+        content: 'comment thread abc',
+        threadId: 'thread-123',
+        owner: 'user-123',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        isDeleted: false,
+      };
+
+      const comment = new Comment(payload);
+      const replies = [];
+      const likeCount = 2;
+
+      // Action
+      const detailedComment = comment.toDetail(replies, likeCount);
+
+      // Assert
+      expect(detailedComment).toEqual({
+        id: 'comment-123',
+        content: 'comment thread abc',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        likeCount: 2,
+        replies: [],
+      });
+    });
+
+    it('should handle zero likeCount correctly', () => {
+      // Arrange
+      const payload = {
+        id: 'comment-123',
+        content: 'comment thread abc',
+        threadId: 'thread-123',
+        owner: 'user-123',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        isDeleted: false,
+      };
+
+      const comment = new Comment(payload);
+      const replies = [];
+      const likeCount = 0;
+
+      // Action
+      const detailedComment = comment.toDetail(replies, likeCount);
+
+      // Assert
+      expect(detailedComment).toEqual({
+        id: 'comment-123',
+        content: 'comment thread abc',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        likeCount: 0,
+        replies: [],
+      });
+    });
+
+    it('should handle large likeCount correctly', () => {
+      // Arrange
+      const payload = {
+        id: 'comment-123',
+        content: 'comment thread abc',
+        threadId: 'thread-123',
+        owner: 'user-123',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        isDeleted: false,
+      };
+
+      const comment = new Comment(payload);
+      const replies = [];
+      const likeCount = 999;
+
+      // Action
+      const detailedComment = comment.toDetail(replies, likeCount);
+
+      // Assert
+      expect(detailedComment).toEqual({
+        id: 'comment-123',
+        content: 'comment thread abc',
+        date: '2025-05-01T03:59:56.666Z',
+        username: 'johndoe',
+        likeCount: 999,
+        replies: [],
+      });
     });
   });
 });
