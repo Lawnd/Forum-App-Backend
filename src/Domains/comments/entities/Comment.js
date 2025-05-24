@@ -28,13 +28,14 @@ class Comment {
     }
   }
 
-  toDetail(replies) {
+  toDetail(replies, likeCount = 0) {
     const formattedReplies = replies.map((reply) => reply.toDetail());
     return {
       id: this.id,
       username: this.username,
       date: this.date,
       content: this.isDeleted ? '**komentar telah dihapus**' : this.content,
+      likeCount,
       replies: formattedReplies,
     };
   }
